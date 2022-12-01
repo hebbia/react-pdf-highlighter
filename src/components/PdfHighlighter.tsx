@@ -128,9 +128,6 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
 
   constructor(props: Props<T_HT>) {
     super(props);
-    if (typeof ResizeObserver !== "undefined") {
-      this.resizeObserver = new ResizeObserver(this.debouncedScaleValue);
-    }
   }
 
   componentDidMount() {
@@ -148,7 +145,6 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
       eventBus.on("pagesinit", this.onDocumentReady);
       doc.addEventListener("selectionchange", this.onSelectionChange);
       doc.addEventListener("keydown", this.handleKeyDown);
-      doc.defaultView?.addEventListener("resize", this.debouncedScaleValue);
       if (observer) observer.observe(ref);
 
       this.unsubscribe = () => {
@@ -156,10 +152,6 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
         eventBus.off("textlayerrendered", this.onTextLayerRendered);
         doc.removeEventListener("selectionchange", this.onSelectionChange);
         doc.removeEventListener("keydown", this.handleKeyDown);
-        doc.defaultView?.removeEventListener(
-          "resize",
-          this.debouncedScaleValue
-        );
         if (observer) observer.disconnect();
       };
     }
@@ -646,7 +638,6 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     }
   };
 
-  debouncedScaleValue: () => void = debounce(this.handleScaleValue, 500);
 
   render() {
     const { onSelectionFinished, enableAreaSelection } = this.props;
