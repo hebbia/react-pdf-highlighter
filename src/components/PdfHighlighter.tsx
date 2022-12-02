@@ -1,4 +1,4 @@
-import React, { Component, PointerEventHandler, PureComponent } from "react";
+import React, { Component, PointerEventHandler } from "react";
 import ReactDom from "react-dom";
 import debounce from "lodash.debounce";
 
