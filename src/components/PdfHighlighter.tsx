@@ -1,4 +1,4 @@
-import React, { PointerEventHandler, PureComponent } from "react";
+import React, { Component, PointerEventHandler, PureComponent } from "react";
 import ReactDom from "react-dom";
 import debounce from "lodash.debounce";
 
@@ -76,12 +76,12 @@ interface Props<T_HT> {
   ) => JSX.Element;
   highlights: Array<T_HT>;
   tables: Array<any>;
-  renderTables: (props: {scale: number; pageIndex: number}) => React.ReactElement | null;
+  renderTables: (props: { scale: number; pageIndex: number }) => React.ReactElement | null;
   onScrollChange: (pageNumber?: number) => void;
   onDocumentLoad: (pdfDoc: PDFDocumentProxy) => void;
   scrollRef: (scrollTo: (highlight: T_HT) => void) => void;
   zoomRef: (onZoom: (zoomIn: boolean) => void) => void;
-  setDocumentDimensions: (dimensions:{width: number; height: number}) => void;
+  setDocumentDimensions: (dimensions: { width: number; height: number }) => void;
   pdfDocument: PDFDocumentProxy;
   pdfScaleValue: string;
   onSelectionFinished: (
@@ -95,7 +95,7 @@ interface Props<T_HT> {
 
 const EMPTY_ID = "empty-id";
 
-export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
+export class PdfHighlighter<T_HT extends IHighlight> extends Component<
   Props<T_HT>,
   State<T_HT>
 > {
@@ -124,7 +124,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
 
   resizeObserver: ResizeObserver | null = null;
   containerNode?: HTMLDivElement | null = null;
-  unsubscribe = () => {};
+  unsubscribe = () => { };
 
   constructor(props: Props<T_HT>) {
     super(props);
@@ -171,6 +171,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
   }
 
   init() {
+    console.log("in init of highlighter")
     const { pdfDocument } = this.props;
     this.viewer =
       this.viewer ||
@@ -212,7 +213,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
   findOrCreateTablesLayer(page: number) {
     const { textLayer } = this.viewer.getPageView(page - 1) || {};
     if (!textLayer) {
-        return null;
+      return null;
     }
     return findOrCreateContainerLayer(textLayer.textLayerDiv, "PdfHighlighter__table-layer");
   }
@@ -322,7 +323,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
       const tableLayer = this.findOrCreateTablesLayer(pageNumber);
       if (tableLayer) {
-        const tables = renderTables({ scale,pageIndex: pageNumber - 1});
+        const tables = renderTables({ scale, pageIndex: pageNumber - 1 });
         tables && ReactDom.render(tables, tableLayer);
       }
     }
@@ -470,7 +471,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
         ...pageViewport.convertToPdfPoint(
           0,
           scaledToViewport(boundingRect, pageViewport, usePdfCoordinates).top -
-            scrollMargin
+          scrollMargin
         ),
         0,
       ],
@@ -496,7 +497,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
 
   onDocumentReady = () => {
     const { scrollRef, onDocumentLoad, pdfDocument, zoomRef, setDocumentDimensions } = this.props;
-    setDocumentDimensions({height: this.viewer.container.offsetHeight, width: this.viewer.container.offsetWidth});
+    setDocumentDimensions({ height: this.viewer.container.offsetHeight, width: this.viewer.container.offsetWidth });
     onDocumentLoad(pdfDocument);
     this.handleScaleValue();
     this.viewer.container.offsetHeight
