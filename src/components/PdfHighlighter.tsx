@@ -1,4 +1,4 @@
-import React, { Component, PointerEventHandler } from "react";
+import React, { PointerEventHandler, PureComponent } from "react";
 import ReactDom from "react-dom";
 import debounce from "lodash.debounce";
 
@@ -91,11 +91,12 @@ interface Props<T_HT> {
     transformSelection: () => void
   ) => JSX.Element | null;
   enableAreaSelection: (event: MouseEvent) => boolean;
+  enableAreaSelectionBool?: boolean;
 }
 
 const EMPTY_ID = "empty-id";
 
-export class PdfHighlighter<T_HT extends IHighlight> extends Component<
+export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
   Props<T_HT>,
   State<T_HT>
 > {
@@ -641,7 +642,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends Component<
 
 
   render() {
-    const { onSelectionFinished, enableAreaSelection } = this.props;
+    const { onSelectionFinished, enableAreaSelectionBool, enableAreaSelection } = this.props;
 
     return (
       <div onPointerDown={this.onMouseDown}>
@@ -660,7 +661,8 @@ export class PdfHighlighter<T_HT extends IHighlight> extends Component<
                 this.setState({ isAreaSelectionInProgress: isVisible })
               }
               shouldStart={(event) =>
-                enableAreaSelection(event) &&
+                (enableAreaSelectionBool || enableAreaSelection(event)) &&
+                // enableAreaSelection(event) &&
                 isHTMLElement(event.target) &&
                 Boolean(asElement(event.target).closest(".page"))
               }
