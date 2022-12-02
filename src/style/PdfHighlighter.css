@@ -13,7 +13,7 @@
 
 .PdfHighlighter__table-layer {
   position: absolute;
-  z-index: 3;
+  z-index: 4;
   left: 0;
 }
 

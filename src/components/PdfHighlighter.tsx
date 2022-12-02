@@ -75,8 +75,8 @@ interface Props<T_HT> {
     isScrolledTo: boolean
   ) => JSX.Element;
   highlights: Array<T_HT>;
-  tables: Array<any>;
-  renderTables: (props: {scale: number; pageIndex: number}) => React.ReactElement | null;
+  tables: Array<{page_number: number}>;
+  renderTables: (props: {scale: number; pageIndex: number; height?: number; width?: number;}) => React.ReactElement | null;
   onScrollChange: (pageNumber?: number) => void;
   onDocumentLoad: (pdfDoc: PDFDocumentProxy) => void;
   scrollRef: (scrollTo: (highlight: T_HT) => void) => void;
@@ -317,15 +317,23 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
   }
 
   renderTables(nextProps?: Props<T_HT>) {
-    const { pdfDocument, renderTables } = nextProps || this.props;
+    const { renderTables, tables } = nextProps || this.props;
+    const pageNumbers = new Set(tables.map(({page_number}) => page_number + 1));
     const scale = this.viewer.currentScale;
-    for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
+    pageNumbers.forEach(pageNumber => {
+      const page = this.viewer.getPageView(pageNumber - 1);
+      if (!page || !page.textLayer) {
+        return;
+      }
+      const div = page.textLayer.textLayerDiv;
+      const height = div.offsetHeight; 
+      const width = div.offsetWidth;
       const tableLayer = this.findOrCreateTablesLayer(pageNumber);
       if (tableLayer) {
-        const tables = renderTables({ scale,pageIndex: pageNumber - 1});
+        const tables = renderTables({ scale, pageIndex: pageNumber - 1, height, width});
         tables && ReactDom.render(tables, tableLayer);
       }
-    }
+    })
   }
 
   renderHighlights(nextProps?: Props<T_HT>) {
@@ -454,14 +462,14 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
   scrollTo = (highlight: T_HT) => {
     const { pageNumber, boundingRect, usePdfCoordinates } = highlight.position;
     this.viewer.container.removeEventListener("scroll", this.onScroll);
-    this.viewer.container.removeEventListener("scroll", this.onScrollTracker);
+    this.viewer.container.removeEventListener("scroll", this.onScrollTracker)
     const pageViewport = this.viewer.getPageView(pageNumber)?.viewport;
     if (!pageViewport) {
       return;
     }
 
     const scrollMargin = 10;
-
+  
     this.viewer.scrollPageIntoView({
       pageNumber,
       destArray: [
@@ -497,6 +505,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
   onDocumentReady = () => {
     const { scrollRef, onDocumentLoad, pdfDocument, zoomRef, setDocumentDimensions } = this.props;
     setDocumentDimensions({height: this.viewer.container.offsetHeight, width: this.viewer.container.offsetWidth});
+    console.log({viewer: this.viewer, container: this.viewer.container});
     onDocumentLoad(pdfDocument);
     this.handleScaleValue();
     this.viewer.container.offsetHeight
